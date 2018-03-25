@@ -1,0 +1,10 @@
+requires "Plack";
+requires "Router::Boom";
+requires "Redis::Fast";
+requires "Furl";
+requires "Path::Tiny";
+requires "Starlet";
+requires "Proclet";
+requires "HTML::Escape";
+requires "Data::UUID";
+requires "IO::Socket::SSL";
