@@ -23,7 +23,7 @@ services:
       - webapp_default
 
   kuiperbelt:
-    image: kuiperbelt:latest
+    image: kuiperbelt/kuiperbelt:latest
     ports:
       - "12345:12345"
     environment:
