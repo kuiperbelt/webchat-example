@@ -28,7 +28,7 @@
         <h1>chat sample <small>powered by <a href="https://github.com/mackee/kuiperbelt">kuiperbelt</a></small></h1>
 
         <div class="row">
-          <input id="inputMessage" type="text" class="form-control" placeholder="Text input">
+          <input id="inputMessage" type="text" class="form-control" placeholder="Text input" disabled>
         </div>
       </div>
 
@@ -43,6 +43,7 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
     <script>
 $(document).ready(function(){
 
@@ -60,24 +61,34 @@ $.getJSON("/ws_endpoint", function(endpointResp) {
     $("#messages").prepend(items);
   });
 
-  var websocket = new WebSocket(uri+"?uuid="+uuid);
-  websocket.onmessage = function(event) {
-    if (event && event.data) {
-      $("#messages").prepend(
-          '<li class="list-group-item">' + event.data + '</li>'
-      );
-    }
-  };
+  var socket = io(uri, {
+    query: { uuid: uuid, },
+    transports: ["websocket"],
+  });
 
-  $("#inputMessage").keypress(function(event) {
-    if (event.keyCode != "13") {
-      return;
-    }
-    var message = this.value;
-    this.value = "";
-    $.post("/post", {
-      message: message,
+  socket.on("connect", function() {
+    $("#inputMessage").prop("disabled", false);
+    socket.on("message", function(message) {
+      $("#messages").prepend(
+          '<li class="list-group-item">' + message + '</li>'
+      );
     });
+
+    $("#inputMessage").keypress(function(event) {
+      if (event.keyCode != "13") {
+        return;
+      }
+      var message = this.value;
+      if (message === "") {
+        return;
+      }
+      socket.emit("message", message);
+      this.value = "";
+    });
+  });
+
+  socket.on("disconnect", function() {
+    $("#inputMessage").prop("disabled", true);
   });
 });
 
